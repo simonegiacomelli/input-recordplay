@@ -11,7 +11,11 @@ def process_keyboard(line, values: list[str]):
     print(f'Processing line: {line}')
     delay = int(values[2])
     sleep(delay / 1_000_000_000)
-    key = getattr(Key, values[1])
+    key_str = values[1]
+    if key_str.startswith("'"):
+        key = key_str[1]
+    else:
+        key = getattr(Key, key_str)
     func = keyboard.press if values[0][1] == 'p' else keyboard.release
     func(key)
 
