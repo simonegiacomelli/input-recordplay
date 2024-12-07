@@ -15,7 +15,7 @@ def process_keyboard(line, values: list[str]):
     else:
         key = getattr(Key, key_str)
     func = controller.press if values[0][1] == 'p' else controller.release
-    # func(key)
+    func(key)
 
 
 def main():
