@@ -45,29 +45,30 @@ def handler(prefix: str, *args):
     append(f'{prefix},{join},{delay}')
 
 
-def keyboard_handler(prefix: str, key: Key | KeyCode):
-    if isinstance(key, Key):
-        key = key.name
-    handler(prefix, key)
+def kw(prefix: str):
+    def kh(key: Key | KeyCode):
+        if key == Key.f11:
+            if prefix == 'kp':
+                stop()
+            return
+        if isinstance(key, Key):
+            key = key.name
+        handler(prefix, key)
+    return kh
+
+def stop():
+    print(f'{stop_key} pressed, exiting...')
+    keyboard_listener.stop()
+    mouse_listener.stop()
+    stop_event.set()
 
 
-def on_release(key: Key | KeyCode):
-    if key == Key.f11:
-        print(f'{stop_key} pressed, exiting...')
-        keyboard_listener.stop()
-        mouse_listener.stop()
-        stop_event.set()
-        # sys.exit(0)
-        return
-    keyboard_handler('kr', key)
-
-
-def wrap(prefix: str):
+def mw(prefix: str):
     return partial(handler, prefix)
 
 
-keyboard_listener = keyboard.Listener(on_press=partial(keyboard_handler, 'kp'), on_release=on_release)
-mouse_listener = mouse.Listener(on_move=wrap('mm'), on_click=wrap('mc'), on_scroll=wrap('ms'))
+keyboard_listener = keyboard.Listener(on_press=kw('kp'), on_release=kw('kr'))
+mouse_listener = mouse.Listener(on_move=mw('mm'), on_click=mw('mc'), on_scroll=mw('ms'))
 
 
 def start():
