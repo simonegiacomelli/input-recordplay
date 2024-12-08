@@ -88,8 +88,7 @@ def main():
             values = line.split(',')
             event_type = line[0]
 
-            delay_ns = int(values[-1])
-            delay_secs = delay_ns / 1e9
+            delay_secs = float(values[-1])
             print(f'delaying {delay_secs} seconds')
             sleep(delay_secs)
 

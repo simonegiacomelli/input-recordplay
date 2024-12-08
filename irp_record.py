@@ -25,7 +25,8 @@ last = video_path / f'last.{extension}'
 
 file.touch(exist_ok=False)
 
-last_event = time.monotonic_ns()
+event_time = time.monotonic
+last_event = event_time()
 
 
 def append(line: str):
@@ -38,7 +39,7 @@ stop_event = Event()
 
 def handler(prefix: str, *args):
     global last_event
-    now = time.monotonic_ns()
+    now = event_time()
     delay = now - last_event
     last_event = now
     join = ','.join(map(str, args))
@@ -54,7 +55,9 @@ def kw(prefix: str):
         if isinstance(key, Key):
             key = key.name
         handler(prefix, key)
+
     return kh
+
 
 def stop():
     print(f'{stop_key} pressed, exiting...')
@@ -72,7 +75,7 @@ mouse_listener = mouse.Listener(on_move=mw('mm'), on_click=mw('mc'), on_scroll=m
 
 
 def start():
-    append('type,*args,delay_ns')
+    append('type,*args,delay_secs')
     keyboard_listener.start()
     mouse_listener.start()
     keyboard_listener.join()
