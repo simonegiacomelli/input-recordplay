@@ -31,19 +31,20 @@ mouse_contr = mouse.Controller()
 
 def process_keyboard(line, values: list[str]):
     key_str = values[1]
+    keydown = values[0][1] == 'p'
     if key_str.startswith("'"):
-        key = key_str[1]
+        if keydown:  # ignore keyup
+            key = key_str[1]
+            key_contr.send(f'type {key}')
     else:
         key = pynput_to_dotool_key(key_str)
         if not key_contr.has_chord(key):
             print(f'unknown key: {key}')
             sys.exit(1)
-
-    keydown = values[0][1] == 'p'
-    func = 'keydown' if keydown else 'keyup'
-    line = f'{func} {key}'
-    print(f'process_keyboard: {line}')
-    key_contr.send(line)
+        func = 'keydown' if keydown else 'keyup'
+        line = f'{func} {key}'
+        print(f'process_keyboard: {line}')
+        key_contr.send(line)
 
 
 def process_mouse(line, values: list[str]):
