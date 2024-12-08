@@ -1,12 +1,50 @@
+import subprocess
+import sys
+from pathlib import Path
 from time import sleep
 
+from dotool_keys import DotoolKeys
+from dotool_mapping import pynput_to_dotool_key
 from irplib import get_video_path, extension
 
 from pynput.keyboard import Key
 from pynput import keyboard, mouse
 
-key_contr = keyboard.Controller()
+
+class DotoolKeyboard:
+
+    def __init__(self):
+        self.process = subprocess.Popen(['dotool'], stdin=subprocess.PIPE, text=True)
+        self.dotool_keys = DotoolKeys()
+
+    def send(self, line: str):
+        self.process.stdin.write(f'{line}\n')
+        self.process.stdin.flush()
+
+    def has_chord(self, key: str):
+        return key in self.dotool_keys.keys
+
+
+key_contr = DotoolKeyboard()
 mouse_contr = mouse.Controller()
+
+
+def process_keyboard(line, values: list[str]):
+    key_str = values[1]
+    keydown = values[0][1] == 'p'
+    if key_str.startswith("'"):
+        if keydown:  # ignore keyup
+            key = key_str[1]
+            key_contr.send(f'type {key}')
+    else:
+        key = pynput_to_dotool_key(key_str)
+        if not key_contr.has_chord(key):
+            print(f'unknown key: {key}')
+            sys.exit(1)
+        func = 'keydown' if keydown else 'keyup'
+        line = f'{func} {key}'
+        print(f'process_keyboard: {line}')
+        key_contr.send(line)
 
 
 def process_mouse(line, values: list[str]):
@@ -26,17 +64,6 @@ def process_mouse(line, values: list[str]):
         func(button)
     else:
         raise Exception(f'process_mouse skip: {line}')
-
-
-def process_keyboard(line, values: list[str]):
-    print(f'process_keyboard: {line}')
-    key_str = values[1]
-    if key_str.startswith("'"):
-        key = key_str[1]
-    else:
-        key = getattr(Key, key_str)
-    func = key_contr.press if values[0][1] == 'p' else key_contr.release
-    func(key)
 
 
 def main():
