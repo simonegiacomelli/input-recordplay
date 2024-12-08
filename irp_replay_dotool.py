@@ -3,6 +3,8 @@ import sys
 from pathlib import Path
 from time import sleep
 
+from dotool_keys import DotoolKeys
+from dotool_mapping import pynput_to_dotool_key
 from irplib import get_video_path, extension
 
 from pynput.keyboard import Key
@@ -13,19 +15,14 @@ class DotoolKeyboard:
 
     def __init__(self):
         self.process = subprocess.Popen(['dotool'], stdin=subprocess.PIPE, text=True)
-        keys_lines = (Path(__file__).parent / 'dotool_keys.txt').read_text().splitlines(keepends=False)
-        self.keys = set()
-        for line in keys_lines:
-            key = line.split()[0]
-            self.keys.add(key)
-
+        self.dotool_keys = DotoolKeys()
 
     def send(self, line: str):
         self.process.stdin.write(f'{line}\n')
         self.process.stdin.flush()
 
-    def has_chord(self, key:str):
-        return key in self.keys
+    def has_chord(self, key: str):
+        return key in self.dotool_keys.keys
 
 
 key_contr = DotoolKeyboard()
@@ -37,15 +34,13 @@ def process_keyboard(line, values: list[str]):
     if key_str.startswith("'"):
         key = key_str[1]
     else:
-        key = getattr(Key, key_str)
+        key = pynput_to_dotool_key(key_str)
+        if not key_contr.has_chord(key):
+            print(f'unknown key: {key}')
+            sys.exit(1)
+
     keydown = values[0][1] == 'p'
     func = 'keydown' if keydown else 'keyup'
-    if key_str == 'cmd':
-        key = 'leftmeta'
-    if not key_contr.has_chord(key):
-        print(f'unknown key: {key}')
-        sys.exit(1)
-
     line = f'{func} {key}'
     print(f'process_keyboard: {line}')
     key_contr.send(line)

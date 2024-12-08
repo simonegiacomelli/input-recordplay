@@ -15,7 +15,7 @@ from pynput.keyboard import KeyCode, Key
 from irplib import extension
 
 stop_key = 'F11'
-print(f'Starting cnee recording, press {stop_key} to stop it.')
+print(f'Starting irp_record.py, press {stop_key} to stop it.')
 
 video_dir = subprocess.check_output('xdg-user-dir VIDEOS'.split(' ')).decode().strip()
 dt = datetime.now().strftime('%Y-%m-%d--%H-%M-%S')
